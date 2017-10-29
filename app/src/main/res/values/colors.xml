@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#FF8B8B</color>
+    <color name="colorPrimaryDark">#FA7878</color>
+    <color name="colorAccent">#F9D55B</color>
+    <color name="white">#ffffffff</color>
+    <color name="black">#ff000000</color>
+    <color name="red">#ffff0000</color>
+    <color name="transparent">#00000000</color>
+    <color name="transparent2">#44000000</color>
+    <color name="transparent3">#77000000</color>
+    <color name="snowdrift">#f5f5f5</color>
+
+</resources>
