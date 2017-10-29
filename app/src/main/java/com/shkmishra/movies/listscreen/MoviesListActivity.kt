@@ -31,7 +31,6 @@ class MoviesListActivity : BaseActivity(), MoviesListContract.View, RecyclerClic
         setContentView(R.layout.activity_movies_list)
         disposable = presenter.loadMovies()
         StrictMode.setVmPolicy(StrictMode.VmPolicy.Builder().build()) // bypass fileUirExposed on Nougat
-        //        https://www.flaticon.com/free-icon/video-camera_457754
     }
 
     override fun onClick(position: Int, view: View) {
@@ -51,7 +50,7 @@ class MoviesListActivity : BaseActivity(), MoviesListContract.View, RecyclerClic
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
-                if (!query.isNullOrEmpty()) {
+                if (!query.isEmpty()) {
                     disposable = presenter.searchMovies(query)
                     adapter.clearAll()
                 }
@@ -59,9 +58,7 @@ class MoviesListActivity : BaseActivity(), MoviesListContract.View, RecyclerClic
                 return true
             }
 
-            override fun onQueryTextChange(newText: String?): Boolean {
-                return true
-            }
+            override fun onQueryTextChange(newText: String?): Boolean = true
 
         })
         return super.onCreateOptionsMenu(menu)
