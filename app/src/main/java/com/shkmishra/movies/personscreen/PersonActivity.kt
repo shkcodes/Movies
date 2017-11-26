@@ -29,14 +29,14 @@ class PersonActivity : BaseActivity(), PersonContract.View {
         window.doOnAnimationEnd {
             personName.apply {
                 text = intent.getStringExtra("name")
-                translationY = 100f
+                translationY = 200f
                 animate().translationY(0f).setDuration(600).setStartDelay(300).start()
             }
         }
     }
 
     override fun onBackPressed() {
-        personName.animate().translationY(100f).setDuration(300).doOnAnimationEnd {
+        personName.animate().translationY(200f).setDuration(300).doOnAnimationEnd {
             super.onBackPressed()
             overridePendingTransition(0, 0)
         }

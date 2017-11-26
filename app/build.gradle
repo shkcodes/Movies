@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
 androidExtensions {
     experimental = true
 }
@@ -44,6 +45,9 @@ dependencies {
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.android.support:palette-v7:26.+'
     compile 'de.hdodenhof:circleimageview:2.2.0'
+    implementation 'android.arch.persistence.room:runtime:1.0.0'
+    kapt 'android.arch.persistence.room:compiler:1.0.0'
+    implementation 'android.arch.persistence.room:rxjava2:1.0.0'
     testCompile 'junit:junit:4.12'
 }
 repositories {

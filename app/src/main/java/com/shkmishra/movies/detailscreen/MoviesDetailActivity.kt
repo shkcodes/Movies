@@ -15,8 +15,12 @@ import com.shkmishra.movies.BaseActivity
 import com.shkmishra.movies.R
 import com.shkmishra.movies.models.Cast
 import com.shkmishra.movies.models.MovieResult
+import com.shkmishra.movies.models.MoviesDatabase
 import com.shkmishra.movies.personscreen.PersonActivity
 import com.shkmishra.movies.utils.*
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_movies_detail.*
 import kotlinx.android.synthetic.main.cast_list_item.view.*
 import java.io.File
@@ -30,11 +34,13 @@ class MoviesDetailActivity : BaseActivity(), MoviesDetailContract.View, Recycler
     private lateinit var item: MovieResult
     private lateinit var adapter: MovieCastAdapter
     private var showingMainDetail = true
+    private var movieDb: MoviesDatabase? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_movies_detail)
         item = intent.getParcelableExtra("movie")
+        movieDb = MoviesDatabase.getDatabase(this@MoviesDetailActivity)
 
         setupDetails()
 
@@ -44,6 +50,24 @@ class MoviesDetailActivity : BaseActivity(), MoviesDetailContract.View, Recycler
                 disposable = presenter.getMoviesCast(item.id)
                 showingMainDetail = false
             }
+        }
+
+        favouriteButton.setOnClickListener {
+            val dbTransaction: Observable<Unit?>
+            if (!item.isFavourite) {
+                dbTransaction = Observable.fromCallable {
+                    movieDb?.moviesDao()?.insert(item)
+                }.subscribeOn(Schedulers.io())
+                item.isFavourite = true
+                favouriteButton.setImageDrawable(getDrawable(R.drawable.ic_favorite_white_24dp))
+            } else {
+                dbTransaction = Observable.fromCallable {
+                    movieDb?.moviesDao()?.delete(item)
+                }.subscribeOn(Schedulers.io())
+                item.isFavourite = false
+                favouriteButton.setImageDrawable(getDrawable(R.drawable.ic_favorite_border_white_24dp))
+            }
+            dbTransaction.subscribe()
         }
 
         shareButton.setOnClickListener {
@@ -98,6 +122,14 @@ class MoviesDetailActivity : BaseActivity(), MoviesDetailContract.View, Recycler
         favouriteButton.setColorFilter(item.bottom_color, PorterDuff.Mode.MULTIPLY)
         shareButton.setColorFilter(item.bottom_color, PorterDuff.Mode.MULTIPLY)
         castButton.setColorFilter(item.bottom_color, PorterDuff.Mode.MULTIPLY)
+        movieDb?.moviesDao()?.getFavourite(item.id)?.subscribeOn(Schedulers.io())
+                ?.observeOn(AndroidSchedulers.mainThread())
+                ?.subscribe({
+                    item.isFavourite = true
+                    favouriteButton.setImageDrawable(getDrawable(R.drawable.ic_favorite_white_24dp))
+                }, { t ->
+                    t.printStackTrace()
+                })
     }
 
     private fun flipBottomCard(function: () -> Unit) {
