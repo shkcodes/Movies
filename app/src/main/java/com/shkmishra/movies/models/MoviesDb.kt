@@ -9,7 +9,7 @@ import io.reactivex.Single
 interface MoviesDao {
 
     @get:Query("SELECT * FROM favourites")
-    val getFavourites: List<MovieResult>
+    val getFavourites: Single<List<MovieResult>>
 
     @Query("SELECT * FROM favourites where id LIKE :id LIMIT 1")
     fun getFavourite(id: Int): Single<MovieResult>

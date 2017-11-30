@@ -10,12 +10,16 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.SearchView
 import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import com.shkmishra.movies.BaseActivity
 import com.shkmishra.movies.R
 import com.shkmishra.movies.detailscreen.MoviesDetailActivity
 import com.shkmishra.movies.models.MovieResult
+import com.shkmishra.movies.models.MoviesDatabase
 import com.shkmishra.movies.utils.*
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_movies_list.*
 import kotlinx.android.synthetic.main.movie_list_item.view.*
 
@@ -25,10 +29,14 @@ class MoviesListActivity : BaseActivity(), MoviesListContract.View, RecyclerClic
     private val presenter = MoviesListPresenter(this)
     private lateinit var adapter: MoviesListAdapter
     lateinit var searchView: SearchView
+    private var showingFavourites: Boolean = false
+    private var movieDb: MoviesDatabase? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_movies_list)
+        movieDb = MoviesDatabase.getDatabase(this@MoviesListActivity)
         disposable = presenter.loadMovies()
         StrictMode.setVmPolicy(StrictMode.VmPolicy.Builder().build()) // bypass fileUirExposed on Nougat
     }
@@ -64,6 +72,24 @@ class MoviesListActivity : BaseActivity(), MoviesListContract.View, RecyclerClic
         return super.onCreateOptionsMenu(menu)
     }
 
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        if (item?.itemId == R.id.action_favourites) {
+            showingFavourites = true
+            supportActionBar?.title = getString(R.string.action_favourites)
+            adapter.clearAll()
+            movieDb?.moviesDao()?.getFavourites?.subscribeOn(Schedulers.io())
+                    ?.observeOn(AndroidSchedulers.mainThread())
+                    ?.subscribe({ favourites ->
+                        adapter = MoviesListAdapter(favourites.toMutableList(), this@MoviesListActivity)
+                        moviesRecycler.layoutManager = LinearLayoutManager(this@MoviesListActivity)
+                        moviesRecycler.adapter = adapter
+                    }, { t ->
+                        t.printStackTrace()
+                    })
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
     override fun onBackPressed() {
         if (!searchView.isIconified) {
             searchView.clearFocus()
@@ -71,6 +97,11 @@ class MoviesListActivity : BaseActivity(), MoviesListContract.View, RecyclerClic
             searchView.isIconified = true
             disposable = presenter.loadMovies()
             adapter.clearAll()
+        } else if (showingFavourites) {
+            showingFavourites = false
+            supportActionBar?.title = getString(R.string.app_name)
+            adapter.clearAll()
+            disposable = presenter.loadMovies()
         } else super.onBackPressed()
     }
 
